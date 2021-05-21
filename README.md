@@ -21,7 +21,6 @@ References
 
 - [VS Code & Django - Tutorial](https://www.youtube.com/watch?v=IlmICfGQOv4)
 - [DJANGO PROJECTS IN VISUAL STUDIO CODE](https://automationpanda.com/2018/02/08/django-projects-in-visual-studio-code/)
-  <img src="https://codeinstitute.s3.amazonaws.com/fullstack/ci_logo_small.png" style="margin: 0;">
 - [Visual Studio Code (Mac) - Setting up a Python Development Environment and Complete Overview](https://www.youtube.com/watch?v=06I63_p-2A4)
 - [Visual Studio Code (Windows) - Setting up a Python Development Environment and Complete Overview](https://www.youtube.com/watch?v=-nh9rCzPJ20)
 - [The VSCODE Checklist](https://dehlin.dev/blog/2019-07-25-the-vscode-checklist/)
@@ -90,8 +89,6 @@ Blog Q&A by topic
 Welcome NgiapPuoyKoh,
 
 This is the Code Institute student template for Gitpod. We have preinstalled all of the tools you need to get started. You can safely delete this README.md file, or change it for your own project.
-
-
 
 ## Notes
 
@@ -173,6 +170,261 @@ gitpod/djangotodo
 
 SECRET_KEY = 4c\*79i(-u&5rlr-@rf3nmn2%93kxr^f$3w9)&zlf-e@2pq@j$(
 
+## Deployment
+
+### Install Heroku CLI
+
+[The Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli)
+
+heroku login -i
+heroku command help
+
+```
+gitpod /workspace/fs-hello-django $ heroku login -i
+ ›   Warning: heroku update available from 7.46.0 to 7.54.0.
+heroku: Enter your login credentials
+Email: np_koh@yahoo.com
+Password: ********
+Logged in as np_koh@yahoo.com
+```
+
+### POSTGRESS to run on Heroku
+
+```
+pip3 install psycopg2-binary
+pip3 install gunicorn
+pip3 freeze --local requirements.txt
+```
+
+### Create Heroku App
+
+```
+heroku app:create fs-django-todo-app
+heroku apps
+```
+
+```
+gitpod /workspace/fs-hello-django $ git remote -v
+
+heroku  https://git.heroku.com/fs-django-todo-app.git (fetch)
+
+---git push heroku master
+heroku  https://git.heroku.com/fs-django-todo-app.git (push)
+
+origin  https://github.com/NgiapPuoyKoh/fs-hello-django.git (fetch)
+
+---git push origin master
+origin  https://github.com/NgiapPuoyKoh/fs-hello-django.git (push)
+gitpod /workspace/fs-hello-django $
+```
+
+### Setup Heroku Postgres Database
+
+addon postgress (heroku addons:create)
+connect django app to connect to Postgres
+
+#### Heroku GUI to create database
+
+Resources > Add Heroku Postgres > Provision
+**Note: use cleardb for mySQL**
+Settings > Config Vars > DATBASE_URL
+
+```
+gitpod /workspace/fs-hello-django $ heroku addons
+ ›   Warning: heroku update available from 7.46.0 to 7.54.0.
+
+Add-on                                            Plan       Price  State
+────────────────────────────────────────────────  ─────────  ─────  ───────
+heroku-postgresql (postgresql-cylindrical-31334)  hobby-dev  free   created
+ └─ as DATABASE
+
+The table above shows add-ons and the attachments to the current app (fs-django-todo-app) or other apps.
+```
+
+#### Connect App to Heroku Postgres database
+
+```
+pip3 nstall dj_database_url
+pip3 freeze --local > requirments.txt
+```
+
+```
+gitpod /workspace/fs-hello-django $ heroku config
+ ›   Warning: heroku update available from 7.46.0 to 7.54.0.
+=== fs-django-todo-app Config Vars
+DATABASE_URL:          postgres://qxcjaniefznanz:f7f0e56b5c0d4419477811d68211d19ae5375e22ee17964dff8340485d86ebbf@ec2-3-211-245-154.compute-1.amazonaws.com:5432/dfljost3nhvppf
+DISABLE_COLLECTSTATIC: 1
+HEROKU_HOSTNAME:       fs-django-todo-app.herokuapp.com
+SECRET_KEY:            !$0+n%p8a%gjzh#dhq!l8(9n_j!3ccnpo+!4x5fyowc)uy#4h!
+
+```
+
+Add to settings.py
+
+```
+import dj_database_url
+
+    DATABASES = {
+        'default': dj_database_url.parse('postgres://qxcjaniefznanz:f7f0e56b5c0d4419477811d68211d19ae5375e22ee17964dff8340485d86ebbf@ec2-3-211-245-154.compute-1.amazonaws.com:5432/dfljost3nhvppf')
+    }
+
+```
+
+### Run migrations
+
+python3 manage.py migrate
+
+### Create and edit .gitignore to exlude DB and pycache
+
+```__pycache__/
+*.sqlite3
+```
+
+### Push changes to .github
+
+git add .
+git commit -m "message..."
+git push origin master
+
+### create Procfile run using project wsgi module to handle http request as runserver does in local environment
+
+```
+web: gunicorn django_todo.wsgi:application
+```
+
+```
+git add Procfile
+git commit -m "Add Procfile"
+git push heroku master
+```
+
+### Deploy code to Heroku
+
+```
+git push heroku master
+heroku config:set DISABLE_COLLECTSTATIC-1
+git push heroku master
+heroku logs --tail
+H14 Error
+```
+
+### ALLOWED HOSTS
+
+settings.py
+
+```
+ALLOWED_HOSTS = ['fs-django-todo-app.herokuapp.com']
+```
+
+git add django_todo/settings.py
+git commit -m "Add ALLOWED_HOST"
+git push heroku master
+git push origin master
+
+### Connect Heroku to GitHub
+
+**Heroku GUI**
+
+DEPLOY > GitHub
+Connect to Github
+Search and select repo and click on connect
+Enable Automatic DEploy
+
+**settings.py**
+
+```
+SECRET_KEY = os.environ.get('SECRET_KEY', '!$0+n%p8a%gjzh#dhq!l8(9n_j!3ccnpo+!4x5fyowc)uy#4h!')
+
+ALLOWED_HOSTS = [os.environ.get('HEROKU_HOSTNAME')]
+
+    DATABASES = {
+        'default': dj_database_url.parse(os.environ.get('DATABASE_URL'))
+    }
+
+```
+
+**Heroku GUI**
+
+Settings > Config Vars
+HEROKU_HOSTNAME fs-django-todo-app.herokuapp.com
+
+```
+git add .
+git commnt -m "Setup environement variables and automatic deployment"
+git push origin master
+```
+
+### Setup local development environment for Gitpod DEBUG, access SQLlite and updating host
+
+**settings.py**
+
+```
+development = os.environ.get('DEVELOPMENT', False)
+
+DEBUG = development
+
+if development:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    }
+else:
+    DATABASES = {
+        'default': dj_database_url.parse(os.environ.get('DATABASE_URL'))
+    }
+
+
+if development:
+    ALLOWED_HOSTS = ['localhost']
+else:
+    ALLOWED_HOSTS = [os.environ.get('HEROKU_HOSTNAME')]
+
+```
+
+Gitpod Environment setting
+Gitpod account
+Settings > Environment Variables> Add
+DEVELOPMENT True ngiappuoykoh/fs-hello-django
+
+Restart Gitpod workspace
+python3 manage.py runserver
+
+git add django_todo/settings.py
+git commit -m "setup development environment"
+git push origin master
+
+### Secure SECRET KEY
+
+**settings.py**
+
+```
+SECRET_KEY = os.environ.get('SECRET_KEY', '')
+```
+
+https://miniwebtool.com/django-secret-key-generator/
+
+Gitpod Environment setting
+Gitpod account
+Settings > Environment Variables> Add
+SECRET_KEY value ngiappuoykoh/fs-hello-django
+
+Restart the workspace
+
+**Heroku**
+settings> confg var
+create
+SECRET_KEY
+
+```
+git add
+git commit -m "Remove Secret Key"
+git push orgin master
+```
+
+<img src="https://codeinstitute.s3.amazonaws.com/fullstack/ci_logo_small.png" style="margin: 0;">
+
 ## Gitpod Reminders
 
 To run a frontend (HTML, CSS, Javascript only) application in Gitpod, in the terminal, type:
@@ -210,3 +462,7 @@ We continually tweak and adjust this template to help give you the best experien
 ---
 
 Happy coding!
+
+```
+
+```
