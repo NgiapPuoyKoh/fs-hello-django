@@ -13,8 +13,18 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 import os
 import dj_database_url
 from pathlib import Path
+from os import path
 
-development = os.environ.get('DEVELOPMENT', False)
+## Add recommended by anna_ci
+if path.exists("env.py"):
+  import env 
+
+if os.environ.get('DEVELOPMENT'):
+    development = True
+else:
+    development = False
+
+# development = os.environ.get('DEVELOPMENT', False)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -30,7 +40,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', '')
 DEBUG = development
 
 if development:
-    ALLOWED_HOSTS = ['localhost']
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 else:
     ALLOWED_HOSTS = [os.environ.get('HEROKU_HOSTNAME')]
 
